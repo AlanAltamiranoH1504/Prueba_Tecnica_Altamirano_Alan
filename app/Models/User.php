@@ -19,6 +19,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
+        "user",
         'name',
         "phone",
         'password',
@@ -48,5 +49,11 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    //Usuario puede tener varios logs
+    public function logs()
+    {
+        return $this->hasMany(Log::class, "user_id");
     }
 }

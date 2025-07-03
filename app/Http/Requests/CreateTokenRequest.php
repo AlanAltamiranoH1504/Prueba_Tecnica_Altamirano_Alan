@@ -22,7 +22,7 @@ class CreateTokenRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "name" => "required|string|exists:users,name",
+            "user" => "required|string|exists:users,user",
             "password" => "required|string"
         ];
     }
@@ -30,9 +30,9 @@ class CreateTokenRequest extends FormRequest
     public function messages(): array
     {
         return [
-            "name.required" => "El nombre es obligatorio para generar el token",
-            "name.string" => "El nombre debe ser una cadena de texto",
-            "name.exits" => "El nombre no existe registrado en la base de datos",
+            "user.required" => "El nombre es obligatorio para generar el token",
+            "user.string" => "El nombre debe ser una cadena de texto",
+            "user.exits" => "El user no está registrado en la base de datos",
 
             "password.required" => "El password es obligatorio para generar el token",
             "password.string" => "El password debe ser una cadena de texto",

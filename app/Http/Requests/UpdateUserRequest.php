@@ -23,8 +23,9 @@ class UpdateUserRequest extends FormRequest
     {
         return [
             "id_user" => "required|integer|exists:users,id",
+            "user" => "required|string|max:50|min:5",
             "name" => "required|string|max:100|min:3",
-            "phone" => "required|string|min:10|max:10|unique:users,phone",
+            "phone" => "required|string|min:10|max:10",
             "password" => "required|string|min:6",
             "consent_ID2" => "boolean",
             "consent_ID3" => "boolean",
@@ -37,6 +38,11 @@ class UpdateUserRequest extends FormRequest
             "id_user.integer" => "El id del usuario debe ser un entero",
             "id_user.exists" => "El id del usuario no existe en la base de datos",
 
+            "user.required" => "El user es obligatorio",
+            "user.string" => "El user debe ser una cadena de texto",
+            "user.min" => "El user debe tener al menos 5 caracteres",
+            "user.max" => "El user debe tener maximo 50 caracteres",
+
             "name.required" => "El nombre es obligatorio",
             "name.string" => "El nombre debe ser un texto",
             "name.min" => "El nombre debe tener al menos 3 caracteres",
@@ -46,7 +52,6 @@ class UpdateUserRequest extends FormRequest
             "phone.string" => "El telefono debe ser de tipo texto",
             "phone.min" => "El telefono debe tener al menos 10 digitos",
             "phone.max" => "El telefono debe tener maximo 10 digitos",
-            "phone.unique" => "El telefono ya se encuentra registrado por otro usuario",
 
             "password.required" => "El password es obligatorio",
             "password.string" => "El password debe ser de tipo texto",

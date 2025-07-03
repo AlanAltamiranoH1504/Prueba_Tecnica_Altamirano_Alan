@@ -17,7 +17,7 @@ class TokenController extends Controller
         $data = $request->validated();
         try {
             $userToGeneratedToken = User::where([
-                "name" => $data["name"],
+                "user" => $data["user"],
             ])->first();
 
             $passwordVerify = Hash::check($data["password"], $userToGeneratedToken->password);
@@ -26,11 +26,11 @@ class TokenController extends Controller
                 $token = $userToGeneratedToken->createToken("token")->plainTextToken;
                 return response()->json([
                     "token" => $token,
-                    "expiration" => now()->addMinutes($minutosExpiracionToken)->toDateTimeString()
+                    "date_finish" => now()->addMinutes($minutosExpiracionToken)->toDateTimeString()
                 ]);
             } else {
                 return response()->json([
-                    "msg" => "Credenciales invalidas",
+                    "msg" => "Credenciales invalidas para generacion de toke de seguridad",
                 ]);
             }
         } catch (\Exception $e) {

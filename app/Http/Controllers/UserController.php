@@ -61,6 +61,7 @@ class UserController extends Controller
             $userToUpdate->password = bcrypt($data["password"]);
             $userToUpdate->consent_ID2 = $data["consent_ID2"];
             $userToUpdate->consent_ID3 = $data["consent_ID3"];
+            $userToUpdate->save();
             return response()->json([
                 "response" => true,
                 "message" => "Usuario actualizado",

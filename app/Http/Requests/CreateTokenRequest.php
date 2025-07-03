@@ -32,7 +32,7 @@ class CreateTokenRequest extends FormRequest
         return [
             "user.required" => "El nombre es obligatorio para generar el token",
             "user.string" => "El nombre debe ser una cadena de texto",
-            "user.exits" => "El user no está registrado en la base de datos",
+            "user.exists" => "El user no está registrado en la base de datos",
 
             "password.required" => "El password es obligatorio para generar el token",
             "password.string" => "El password debe ser una cadena de texto",

@@ -6,16 +6,28 @@ use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\Log;
 use App\Models\User;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Monolog\Handler\IFTTTHandler;
 
 class UserController extends Controller
 {
-    public function prueba()
+    public function pruebaEncriptado()
     {
-        return response()->json([
-            "msg" => "Funcionando controlador de usuarios.Alan|"
-        ]);
+        $nombreEncriptado = Crypt::encryptString("Alan Altamirano Hernandez");
+        try {
+            $nombreSinEncriptacion = Crypt::decryptString($nombreEncriptado);
+            return response()->json([
+                "msg" => "Funcionando metodo de encriptacion",
+                "nombreEncriptado" => $nombreEncriptado,
+                "nombreSinEncriptacion" => $nombreSinEncriptacion,
+            ]);
+        }catch (DecryptException $e){
+            return response()->json([
+                "error" => "Error en descripctacion"
+            ]);
+        }
     }
 
     /**
@@ -38,10 +50,18 @@ class UserController extends Controller
                 $consentID3 = bin2hex(random_bytes(15));
             }
 
+            $datosEncriptados = [];
+            foreach ($request->all() as $key => $value){
+                if ($key !== "consent_ID1" && $key !== "consent_ID2" && $key !== "consent_ID3" && $key !== "user"){
+                    $datoEncriptado = Crypt::encryptString($value);
+                    array_push($datosEncriptados, $datoEncriptado);
+                }
+            }
+
             $usuarioToSave = User::create([
                 "user" => $data["user"],
-                "name" => $data["name"],
-                "phone" => $data["phone"],
+                "name" => $datosEncriptados[1],
+                "phone" => $datosEncriptados[2],
                 "password" => bcrypt($data["password"]),
                 "consent_ID1" => $id1Token,
                 "consent_ID2" => $consentID2,
@@ -73,13 +93,12 @@ class UserController extends Controller
             ])->first();
 
             $userToUpdate->user = $data["user"];
-            $userToUpdate->name = $data["name"];
-            $userToUpdate->phone = $data["phone"];
+            $userToUpdate->name = Crypt::encryptString($data["name"]);
+            $userToUpdate->phone = Crypt::encryptString($data["phone"]);
             $userToUpdate->password = bcrypt($data["password"]);
 
             $consentID2 = $data["consent_ID2"];
             $consentID3 = $data["consent_ID3"];
-
             //Manejo de Consent_ID2
             if ($consentID2 && $userToUpdate->consent_ID2 == null){
                 $userToUpdate->consent_ID2 = bin2hex(random_bytes(15));

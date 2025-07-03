@@ -20,6 +20,12 @@ class TokenController extends Controller
                 "user" => $data["user"],
             ])->first();
 
+            if (!$userToGeneratedToken) {
+                return response()->json([
+                    "error" => "Usuario no encontrado"
+                ], 404);
+            }
+
             $passwordVerify = Hash::check($data["password"], $userToGeneratedToken->password);
             if ($passwordVerify) {
                 $minutosExpiracionToken = config("sanctum.expiration");

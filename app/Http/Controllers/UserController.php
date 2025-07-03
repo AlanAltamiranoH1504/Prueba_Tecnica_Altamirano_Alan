@@ -4,16 +4,30 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\Log;
 use App\Models\User;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
+use Monolog\Handler\IFTTTHandler;
 
 class UserController extends Controller
 {
-    public function prueba()
+    public function pruebaEncriptado()
     {
-        return response()->json([
-            "msg" => "Funcionando controlador de usuarios.Alan|"
-        ]);
+        $nombreEncriptado = Crypt::encryptString("Alan Altamirano Hernandez");
+        try {
+            $nombreSinEncriptacion = Crypt::decryptString($nombreEncriptado);
+            return response()->json([
+                "msg" => "Funcionando metodo de encriptacion",
+                "nombreEncriptado" => $nombreEncriptado,
+                "nombreSinEncriptacion" => $nombreSinEncriptacion,
+            ]);
+        }catch (DecryptException $e){
+            return response()->json([
+                "error" => "Error en descripctacion"
+            ]);
+        }
     }
 
     /**
@@ -23,18 +37,40 @@ class UserController extends Controller
     {
         $data = $request->validated();
         try {
+            $consentID1 = $data["consent_ID1"];
+            $consentID2 = null;
+            $consentID3 = null;
+            if ($consentID1) {
+                $id1Token = bin2hex(random_bytes(15));
+            }
+            if ($data["consent_ID2"]) {
+                $consentID2 = bin2hex(random_bytes(15));
+            }
+            if ($data["consent_ID3"]) {
+                $consentID3 = bin2hex(random_bytes(15));
+            }
+
+            $datosEncriptados = [];
+            foreach ($request->all() as $key => $value){
+                if ($key !== "consent_ID1" && $key !== "consent_ID2" && $key !== "consent_ID3" && $key !== "user"){
+                    $datoEncriptado = Crypt::encryptString($value);
+                    array_push($datosEncriptados, $datoEncriptado);
+                }
+            }
+
             $usuarioToSave = User::create([
-                "name" => $data["name"],
-                "phone" => $data["phone"],
+                "user" => $data["user"],
+                "name" => $datosEncriptados[1],
+                "phone" => $datosEncriptados[2],
                 "password" => bcrypt($data["password"]),
-                "consent_ID1" => true,
-                "consent_ID2" => $data["consent_ID2"],
-                "consent_ID3" => $data["consent_ID3"],
+                "consent_ID1" => $id1Token,
+                "consent_ID2" => $consentID2,
+                "consent_ID3" => $consentID3,
             ]);
             return response()->json([
                 "response" => true,
                 "message" => "Usuario registrado",
-                "data" => $usuarioToSave->id
+                "id_user" => $usuarioToSave->id
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
@@ -56,18 +92,48 @@ class UserController extends Controller
                 "id" => $id
             ])->first();
 
-            $userToUpdate->name = $data["name"];
-            $userToUpdate->phone = $data["phone"];
+            $userToUpdate->user = $data["user"];
+            $userToUpdate->name = Crypt::encryptString($data["name"]);
+            $userToUpdate->phone = Crypt::encryptString($data["phone"]);
             $userToUpdate->password = bcrypt($data["password"]);
-            $userToUpdate->consent_ID2 = $data["consent_ID2"];
-            $userToUpdate->consent_ID3 = $data["consent_ID3"];
+
+            $consentID2 = $data["consent_ID2"];
+            $consentID3 = $data["consent_ID3"];
+            //Manejo de Consent_ID2
+            if ($consentID2 && $userToUpdate->consent_ID2 == null){
+                $userToUpdate->consent_ID2 = bin2hex(random_bytes(15));
+                $logEnableConsentID2 = Log::create([
+                    "action" => "Habilitado CONSENT_ID2",
+                    "user_id" => $userToUpdate->id
+                ]);
+            } else if (!$consentID2 && $userToUpdate->consent_ID2 != null) {
+                $userToUpdate->consent_ID2 = null;
+                $logDisableConsentID2 = Log::create([
+                    "action" => "Deshabilitado CONSENT_ID2",
+                    "user_id" => $userToUpdate->id
+                ]);
+            }
+
+            //Manejo de Consent_ID3
+            if ($consentID3 && $userToUpdate->consent_ID3 == null){
+                $userToUpdate->consent_ID3 = bin2hex(random_bytes(15));
+                $logEnableConsentID3 = Log::create([
+                    "action" => "Habilitado CONSENT_ID3",
+                    "user_id" => $userToUpdate->id
+                ]);
+            } else if (!$consentID3 && $userToUpdate->consent_ID3 != null) {
+                $userToUpdate->consent_ID3 = null;
+                $logDisableConsentID3 = Log::create([
+                    "action" => "Deshabilitado CONSENT_ID3",
+                    "user_id" => $userToUpdate->id
+                ]);
+            }
+
             $userToUpdate->save();
             return response()->json([
                 "response" => true,
-                "message" => "Usuario actualizado",
-                "id_user" => $userToUpdate->id
+                "message" => "Usuario actualizado"
             ], 200);
-
         } catch (\Exception $e) {
             return response()->json([
                 "response" => false,

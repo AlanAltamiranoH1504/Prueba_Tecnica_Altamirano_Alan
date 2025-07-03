@@ -22,6 +22,7 @@ class CreateUserRequest extends FormRequest
     public function rules(): array
     {
         return [
+            "user" => "required|string|max:50|min:5|unique:users,user",
             "name" => "required|string|max:100|min:3",
             "phone" => "required|string|min:10|max:10|unique:users,phone",
             "password" => "required|string|min:6",
@@ -34,6 +35,12 @@ class CreateUserRequest extends FormRequest
     public function messages(): array
     {
         return [
+            "user.required" => "El user es obligatorio",
+            "user.string" => "El user debe ser una cadena de texto",
+            "user.min" => "El user debe tener al menos 5 caracteres",
+            "user.max" => "El user debe tener maximo 50 caracteres",
+            "user.unique" => "El user ya se encuentra registrado",
+
             "name.required" => "El nombre es obligatorio",
             "name.string" => "El nombre debe ser de tipo texto",
             "name.min" => "El nombre debe tener al menos 3 caracteres",
@@ -43,7 +50,6 @@ class CreateUserRequest extends FormRequest
             "phone.string" => "El telefono debe ser de tipo texto",
             "phone.min" => "El telefono debe tener al menos 10 digitos",
             "phone.max" => "El telefono debe tener maximo 10 digitos",
-            "phone.unique" => "El telefono ya se encuentra registrado por otro usuario",
 
             "password.required" => "El password es obligatorio",
             "password.string" => "El password debe ser de tipo texto",
